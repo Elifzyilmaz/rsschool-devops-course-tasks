@@ -9,21 +9,30 @@ on:
     branches:
       - main
 
+permissions:
+  id-token: write      # OIDC için gerekli
+  contents: read       # Repo içeriğini okuyabilmek için gerekli
+
+env:
+  AWS_REGION: "us-east-1"    # Kendi bölgeni yaz
+  AWS_ROLE_ARN: "arn:aws:iam::349570131547:role/GithubActionsRole"  # Kendi IAM rol ARN’in
+
 jobs:
   terraform-check:
     name: Terraform Format Check
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
+      - name: Checkout repo
         uses: actions/checkout@v3
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
         with:
-          terraform_version: 1.12.2
+          terraform_version: 1.12.2   # Yerelde kullandığın versiyon
 
       - name: Terraform fmt check
+        working-directory: ./task1
         run: terraform fmt -check
 
   terraform-plan:
@@ -32,7 +41,7 @@ jobs:
     needs: terraform-check
 
     steps:
-      - name: Checkout code
+      - name: Checkout repo
         uses: actions/checkout@v3
 
       - name: Setup Terraform
@@ -43,13 +52,15 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
-          role-to-assume: arn:aws:iam::349570131547:role/GithubActionsRole
-          aws-region: us-east-1
+          role-to-assume: ${{ env.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
 
       - name: Terraform Init
+        working-directory: ./task1
         run: terraform init
 
       - name: Terraform Plan
+        working-directory: ./task1
         run: terraform plan
 
   terraform-apply:
@@ -59,7 +70,7 @@ jobs:
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
 
     steps:
-      - name: Checkout code
+      - name: Checkout repo
         uses: actions/checkout@v3
 
       - name: Setup Terraform
@@ -70,11 +81,13 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
-          role-to-assume: arn:aws:iam::349570131547:role/GithubActionsRole
-          aws-region: us-east-1
+          role-to-assume: ${{ env.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
 
       - name: Terraform Init
+        working-directory: ./task1
         run: terraform init
 
       - name: Terraform Apply
+        working-directory: ./task1
         run: terraform apply -auto-approve
