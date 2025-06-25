@@ -12,7 +12,10 @@ resource "aws_iam_role" "github_actions_role" {
       Action = "sts:AssumeRoleWithWebIdentity",
       Condition = {
         StringLike = {
-          "token.actions.githubusercontent.com:sub" : "repo:Elifzyilmaz/rsschool-devops-course-tasks:ref:refs/heads/main"
+          "token.actions.githubusercontent.com:sub" : [
+            "repo:Elifzyilmaz/rsschool-devops-course-tasks:ref:refs/heads/main",
+            "repo:Elifzyilmaz/rsschool-devops-course-tasks:ref:refs/heads/task_1"
+          ]
         }
       }
     }]
